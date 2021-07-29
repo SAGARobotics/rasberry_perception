@@ -101,6 +101,8 @@ class Detectron2Server(BaseDetectionServer):
                 boxes = np.asarray(instances.pred_boxes.tensor) if instances.has("pred_boxes") else None
 
                 if len(boxes) == 0:
+                    detections.gripper.single_pickable_berry = False
+
                     return GetDetectorResultsResponse(status=ServiceStatus(), results=detections)
 
                 scores = instances.scores if instances.has("scores") else None
@@ -111,8 +113,14 @@ class Detectron2Server(BaseDetectionServer):
                 #     masks = [GenericMask(x, *x.shape) for x in np.asarray(instances.pred_masks)]
                 # else:
                 #     masks = [None] * len(boxes)
-
+                no_of_berries = 0
+                no_of_ripe_berries = 0
                 for score, cls, bbox, mask in zip(scores, classes, boxes, masks):
+                    if self.classes[cls] == 'flesh_ripe':
+                        no_of_berries = no_of_berries+1
+                        no_of_ripe_berries = no_of_ripe_berries+1
+                    if self.classes[cls]=='flesh_unripe':
+                        no_of_berries = no_of_berries+1
                     x1, y1, x2, y2 = bbox
                     yv, xv = [], []
                     if mask is not None:
@@ -123,6 +131,15 @@ class Detectron2Server(BaseDetectionServer):
                     seg_roi = SegmentOfInterest(x=xv, y=yv)
                     detections.objects.append(Detection(roi=roi, seg_roi=seg_roi, id=self._new_id(), track_id=-1,
                                                         confidence=score, class_name=self.classes[cls]))
+                # check for berries
+                detections.gripper.no_of_berries=no_of_berries
+                if no_of_ripe_berries==1:
+                    detections.gripper.single_pickable_berry = True
+                else:
+                    detections.gripper.single_pickable_berry=False
+            else:
+                detections.gripper.single_pickable_berry = False
+
         except Exception as e:
             print("Detectron2Server error: ", e)
             return GetDetectorResultsResponse(status=ServiceStatus(ERROR=True), results=detections)
