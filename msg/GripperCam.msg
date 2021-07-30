@@ -7,3 +7,4 @@
 float64 calyx_distance
 # Number of berries
 int64 no_of_berries
+bool single_pickable_berry
