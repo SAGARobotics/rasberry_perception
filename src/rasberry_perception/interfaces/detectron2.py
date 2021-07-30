@@ -131,14 +131,6 @@ class Detectron2Server(BaseDetectionServer):
                     seg_roi = SegmentOfInterest(x=xv, y=yv)
                     detections.objects.append(Detection(roi=roi, seg_roi=seg_roi, id=self._new_id(), track_id=-1,
                                                         confidence=score, class_name=self.classes[cls]))
-                # check for berries
-                detections.gripper.no_of_berries=no_of_berries
-                if no_of_ripe_berries==1:
-                    detections.gripper.single_pickable_berry = True
-                else:
-                    detections.gripper.single_pickable_berry=False
-            else:
-                detections.gripper.single_pickable_berry = False
 
         except Exception as e:
             print("Detectron2Server error: ", e)
