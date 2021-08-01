@@ -19,7 +19,7 @@
 ## Tag with:
 ##   docker tag repository.sagarobotics.com/detectron2.gpu:local repository.sagarobotics.com/detectron2.gpu:$(git show --format="%h" -s)
 
-FROM repository.sagarobotics.com/base.gpu:cuda11_1
+FROM repository.sagarobotics.com/base.gpu:deploy
 
 ## Meta information
 LABEL detectron2.version="0.5" maintainers="Saul Goldblatt <saul.goldblatt@sagarobotics.com>, Nikos Tsagkopoulos <ntsagkopoulos@sagarobotics.com>"
