@@ -15,6 +15,9 @@ FROM nvcr.io/nvidia/tensorrt:20.11-py3
 
 LABEL cuda.version="11.1" cudnn.version="8.0" tensorrt.version="7.2.1" maintainers="Robert Belshaw <rbelshaw@sagarobotics.com>, Nikos Tsagkopoulos <ntsagkopoulos@sagarobotics.com>"
 
+# Set FORCE_CUDA because during `docker build` cuda is not accessible
+ENV FORCE_CUDA="1"
+
 RUN DEBIAN_FRONTEND=noninteractive apt-get update --no-install-recommends && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y ninja-build protobuf-compiler libprotobuf-dev python  python3-venv
 
@@ -76,7 +79,7 @@ ENV PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 
 WORKDIR /
-#RUN . modularmot_venv/bin/activate && /PerceptionApps/ModularMOT/modularmot/build_engine.py "/config.json"
+RUN . modularmot_venv/bin/activate && /PerceptionApps/ModularMOT/modularmot/build_engine.py "/config.json"
 
 # Docker clean-up
 RUN rm -rf /var/lib/apt/lists/*
