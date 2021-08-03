@@ -6,9 +6,19 @@ The rasberry_perception package aims to interleave ROS and deep learning framewo
 
 ## Quick start
 
+Launching the server:
+
 ```bash
-roslaunch rasberry_perception detector.launch backend:="detectron2" password:="obtain_from_raymond" image_ns:="/your_camera/colour" depth_ns:="/your_camera/depth" score:="0.5"
+roslaunch rasberry_perception detector_server.launch service_name:=SERVICE_NAME
 ```
+
+Launching the client:
+
+```bash
+roslaunch rasberry_perception detector_client.launch image_ns:=/camera/ns depth_ns:=/depth/ns service_name:=SERVICE_NAME
+```
+
+`<SERVICE NAME>` is one of the docker container you want to run inside [here](/docker/docker-compose.yml).
 
 ## Installation
 
@@ -16,8 +26,8 @@ roslaunch rasberry_perception detector.launch backend:="detectron2" password:="o
 
 ```bash
 cd catkin_ws/src
-git clone https://github.com/RaymondKirk/rasberry_perception
-catkin build rasberry_perception
+git clone https://github.com/SAGARobotics/rasberry_perception
+catkin_make
 ```
 
 ## Detection Backends
@@ -92,6 +102,7 @@ Based off [this](https://docs.google.com/presentation/d/1UDsfChvRGO-f4m43OagRsdk
 
 ## Testing Strategies
 ### Basic Testing Strategy
+[Test sheet](https://docs.google.com/spreadsheets/d/1C4xXYK323IoLDwfvh_UY2o3VphsdprK5LJdtdRo7tU4/edit?usp=sharing)
 1. Run gripper_perception and robot_perception simultaneously on [rosbag](https://drive.google.com/file/d/1Hou6I4-i5ziNpsMPYu96Gs7I6dXLnDGk/view?usp=sharing)
    * Note FPS
     * Turn off gripper_perception and note FPS
