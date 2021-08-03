@@ -134,6 +134,8 @@ class Visualiser:
 
         # Layers of the final visualisation
         self._overlay = np.zeros(self.img.shape) - 1  # -1 is the invalid overlay value
+        self._overlay_solid = np.zeros(self.img.shape) - 1  # -1 is the invalid overlay value
+
         self._text = np.zeros(self.img.shape) - 1
 
         self._min_text_height = 10
@@ -157,9 +159,9 @@ class Visualiser:
                 labels.append("{} {:.2f}".format(detection.class_name, detection.confidence))
 
 
-        self.overlay_instances(boxes, labels, masks, assigned_colors, alpha, message.objects)
+        self.overlay_instances(boxes, labels, masks, assigned_colors, alpha, message.objects,message.gripper)
 
-    def overlay_instances(self, boxes=None, labels=None, masks=None, assigned_colors=None, alpha=0.5, detections=None):
+    def overlay_instances(self, boxes=None, labels=None, masks=None, assigned_colors=None, alpha=0.5, detections=None,gripper=None):
         num_instances = None
         if boxes is not None:
             boxes = self._convert_boxes(boxes)
@@ -190,8 +192,18 @@ class Visualiser:
             masks = [masks[idx] for idx in sorted_idxs] if masks is not None else None
             assigned_colors = [assigned_colors[idx] for idx in sorted_idxs]
             detections = [detections[idx] for idx in sorted_idxs]
-
+        cutting_point_y=300
         for i in range(num_instances):
+            if len(detections[i].seg_roi.x):
+                centre = detections[i].pose.position.x,detections[i].pose.position.y
+                cv2.circle(self._overlay_solid, centre, 10, (0, 0, 0), -1)
+            if detections[i].class_name=='calyx':
+                cv2.line(self._overlay_solid, (20, detections[i].pose.position.y), (20, cutting_point_y), (0, 255, 0), thickness=2)
+                text_point =(20, cutting_point_y-int((cutting_point_y-detections[i].pose.position.y)/2))
+
+                cv2.putText(self._overlay_solid,str(gripper.calyx_distance) +' mm',text_point,cv2.FONT_HERSHEY_PLAIN,2,(0,255,0),thickness=1)
+
+
             if detections[i].track_id>=0:
                 color = _COLORS[detections[i].track_id % len(_COLORS)]
             else:
@@ -211,8 +223,12 @@ class Visualiser:
     def get_image(self, overlay_alpha=0.5):
         canvas = self.img.copy()
         overlay_valid = np.where(self._overlay != -1)
+        overlay_solid_valid = np.where(self._overlay_solid != -1)
+
         canvas[overlay_valid] = (canvas[overlay_valid] * (1 - overlay_alpha)) + (self._overlay[overlay_valid] *
                                                                                  overlay_alpha)
+        canvas[overlay_solid_valid] = canvas[overlay_solid_valid] * self._overlay_solid[overlay_solid_valid]
+
         text_valid = np.where(self._text != -1)
         canvas[text_valid] = self._text[text_valid]
         return canvas
