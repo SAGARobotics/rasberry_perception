@@ -411,7 +411,7 @@ class RunClientOnTopic:
         """
         vis = Visualiser(ros_numpy.numpify(image_msg))
         vis.draw_detections_message(result)
-        vis_image = vis.get_image(overlay_alpha=0.5)
+        vis_image = vis.get_image(overlay_alpha=0.3)
         vis_msg = ros_numpy.msgify(Image, vis_image, encoding=image_msg.encoding)
         vis_msg.header = image_msg.header
         vis_info = image_info

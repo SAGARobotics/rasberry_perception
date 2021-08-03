@@ -154,7 +154,7 @@ class Visualiser:
             if detection.track_id >=0:
                 labels.append("{}{}".format(detection.class_name, detection.track_id))
             else:
-                labels.append('')
+                labels.append("{} {:.2f}".format(detection.class_name, detection.confidence))
 
 
         self.overlay_instances(boxes, labels, masks, assigned_colors, alpha, message.objects)
@@ -195,7 +195,8 @@ class Visualiser:
             if detections[i].track_id>=0:
                 color = _COLORS[detections[i].track_id % len(_COLORS)]
             else:
-                color=np.array([1,1,1])
+                #color=np.array([1,1,1])
+                color = _COLORS[len(detections[i].class_name)]
 
             self.draw_box(boxes[i], edge_color=color)
 
