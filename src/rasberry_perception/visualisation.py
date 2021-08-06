@@ -192,12 +192,12 @@ class Visualiser:
             masks = [masks[idx] for idx in sorted_idxs] if masks is not None else None
             assigned_colors = [assigned_colors[idx] for idx in sorted_idxs]
             detections = [detections[idx] for idx in sorted_idxs]
-        cutting_point_y=300
+        cutting_point_y=350
         for i in range(num_instances):
             if len(detections[i].seg_roi.x):
                 centre = detections[i].pose.position.x,detections[i].pose.position.y
                 cv2.circle(self._overlay_solid, centre, 10, (0, 0, 0), -1)
-            if detections[i].class_name=='calyx':
+            if detections[i].class_name=='calyx' and gripper.no_of_berries==1:
                 cv2.line(self._overlay_solid, (20, detections[i].pose.position.y), (20, cutting_point_y), (0, 255, 0), thickness=2)
                 text_point =(20, cutting_point_y-int((cutting_point_y-detections[i].pose.position.y)/2))
 
