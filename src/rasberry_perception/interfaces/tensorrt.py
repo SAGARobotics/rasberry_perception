@@ -7,7 +7,7 @@ from rasberry_perception.msg import Detections, ServiceStatus, RegionOfInterest,
 from rasberry_perception.srv import GetDetectorResultsResponse, GetDetectorResultsRequest
 from rasberry_perception.utility import function_timer
 
-@DETECTION_REGISTRY.register_detection_backend("TensorrtServer")
+@DETECTION_REGISTRY.register_detection_backend("tensorrt")
 class TensorrtServer(BaseDetectionServer):
     def __init__(self, config_path, service_name, image_height=480, image_width=640, image_hz=30):    
         try:
