@@ -19,7 +19,6 @@ class TensorrtServer(BaseDetectionServer):
         with open(config_path) as cfg_file:
             config = json.load(cfg_file, cls=ConfigDecoder)        
         project_dir = os.path.dirname(__file__)
-        self.nms_max_overlap = nms_max_overlap        
         
         print("Load Engine")
         self.mot = modularmot.MOT([int(image_width), int(image_height)],1.0/int(image_hz), config['mot'], detections_only=True, verbose=False)
