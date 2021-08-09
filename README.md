@@ -120,3 +120,4 @@ Based off [this](https://docs.google.com/presentation/d/1UDsfChvRGO-f4m43OagRsdk
 4. Test berry localisation
     * Sense check with Rviz on testbench
 5. As above but with different real scenarios in a polytunnel
+6. Record results [here](https://docs.google.com/spreadsheets/d/1NDXrit6rRmPvllBFJigCEX74OEHoN1O8fIowydJ1Lco/edit#gid=0)
