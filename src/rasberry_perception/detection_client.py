@@ -95,7 +95,7 @@ class RunClientOnTopic:
                                                            queue_size=1)
 
             #Marker Publisher
-            self.vis_marker_pub = rospy.Publisher(self.namespace + "/vis/markers", MarkerArray)
+            self.vis_marker_pub = rospy.Publisher(self.namespace + "/vis/markers", MarkerArray,queue_size=1)
 
 
             # Worker thread to do the heavy lifting of the detections visualisation
@@ -240,7 +240,7 @@ class RunClientOnTopic:
             z = np.median(berry_mask)
             z =z/1000
             return z
-
+ 
     @staticmethod
     def _is_overlap( bb1, bb2):
         if (bb1[0]>= bb2[1]) or (bb1[1] <= bb2[0]) or (bb1[3] <= bb2[2]) or (bb1[2] >= bb2[3]):
@@ -288,6 +288,7 @@ class RunClientOnTopic:
             depth_info (CameraInfo):  The depth camera info message
             response (GetDetectorResultsResponse):  The result of a call to the GetDetectorResults service api
         """
+
         # Filter detections by the score
         results = response.results
         results.objects = [d for d in response.results.objects if d.confidence >= self.score_thresh]
@@ -308,6 +309,42 @@ class RunClientOnTopic:
                 self.image_pub.publish(image_msg)
                 self.image_info_pub.publish(image_info)
             return
+        if self._service_name=='gripper_perception':
+            # desired stem length
+            stem_length = 100
+            stem_error = 5
+            top_pixel = (348, 311)
+            dist_per_pixel_y = 0.7
+
+            ripe_flag = False
+            unripe_flag=False
+            calyx_flag=False
+            ripe_berry_cnt=0
+            unripe_berry_cnt=0
+            calyx_cnt=0
+
+            for i in range(len(results.objects)):
+                roi = results.objects[i].roi
+                centre = int(roi.x1 + (roi.x2 - roi.x1) / 2), int(roi.y1 + (roi.y2 - roi.y1) / 2)
+                results.objects[i].pose.position.x = centre[0]
+                results.objects[i].pose.position.y = centre[1]
+
+                if results.objects[i].class_name=='flesh_ripe':
+                    ripe_flag=True
+                    ripe_berry_cnt = ripe_berry_cnt +1
+                if results.objects[i].class_name=='flesh_unripe':
+                    unripe_flag=True
+                    unripe_berry_cnt = unripe_berry_cnt +1
+                if results.objects[i].class_name=='calyx':
+                    calyx_flag=True
+                    calyx_cnt = calyx_cnt+1
+                    calyx_distance = (top_pixel[1] - centre[1])*dist_per_pixel_y
+
+            if ripe_berry_cnt==1 and calyx_flag==True and unripe_berry_cnt==0:
+                results.gripper.calyx_distance = calyx_distance
+                results.gripper.no_of_berries=1
+            else:
+                results.gripper.no_of_berries = ripe_berry_cnt+unripe_berry_cnt
 
         if self.depth_enabled and depth_msg is not None:
             depth_image = ros_numpy.numpify(depth_msg)
@@ -344,6 +381,7 @@ class RunClientOnTopic:
                             results.objects[i].pose = box_pose
                             results.objects[i].size = size
                             results.objects[i].pose_frame_id = depth_msg.header.frame_id
+
                         tagged_bbox_poses.poses.append(TaggedPose(tag=label, pose=box_pose))
                         poses[label]["bbox"].poses.append(box_pose)
                     if self.visualisation_enabled:
@@ -411,7 +449,7 @@ class RunClientOnTopic:
         """
         vis = Visualiser(ros_numpy.numpify(image_msg))
         vis.draw_detections_message(result)
-        vis_image = vis.get_image(overlay_alpha=0.5)
+        vis_image = vis.get_image(overlay_alpha=0.3)
         vis_msg = ros_numpy.msgify(Image, vis_image, encoding=image_msg.encoding)
         vis_msg.header = image_msg.header
         vis_info = image_info
@@ -436,15 +474,15 @@ def _get_detections_for_topic():
     _node_name = default_service_name + '_client'
     rospy.init_node(_node_name, anonymous=True)
     # get private namespace parameters
-    p_image_ns = rospy.get_param('~image_ns', "/camera/camera1/color")
+    p_image_ns = rospy.get_param('~image_ns', "/camera1/usb_cam")
     p_depth_ns = rospy.get_param('~depth_ns', "")
     # p_image_ns = rospy.get_param('~image_ns', "/camera/camera1/color")
     # p_depth_ns = rospy.get_param('~depth_ns', "/camera/camera1/aligned_depth_to_color")
-    p_service_name = rospy.get_param('~service_name', "robot_perception")
+    p_service_name = rospy.get_param('~service_name', "gripper_perception")
     # p_image_ns = rospy.get_param('~image_ns', "/sequence_0/color")
     # p_depth_ns = rospy.get_param('~depth_ns', "/sequence_0/aligned_depth_to_color")
     # p_service_name = rospy.get_param('~service_name', "GetDetectionsService")
-    p_score = rospy.get_param('~score', 0.5)
+    p_score = rospy.get_param('~score', 0.8)
     p_vis = rospy.get_param('~show_vis', True)
     p_source = rospy.get_param('~publish_source', True)
     p_run_on_start = rospy.get_param('~run_on_start', True)
